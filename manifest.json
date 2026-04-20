@@ -1,0 +1,17 @@
+{
+	"manifest_version": 3,
+	"name": "Debug Visor",
+	"version": "1.0.0",
+	"description": "Applies a transparent overlay background to all elements for debugging layout.",
+	"permissions": ["storage", "activeTab", "scripting"],
+	"icons": {
+		"32": "32.png"
+	},
+	"action": {
+		"default_popup": "popup.html",
+		"default_title": "Debug Visor",
+		"default_icon": {
+			"32": "32.png"
+		}
+	}
+}

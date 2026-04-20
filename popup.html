@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Debug Visor</title>
+	<link rel="stylesheet" href="popup.css" />
+</head>
+
+<body>
+	<main class="app">
+		<header class="topbar">
+			<h1 class="title">Debug Visor</h1>
+
+			<label class="toggle" aria-label="Toggle Debug Visor">
+				<input id="enabled" class="toggle__input" type="checkbox" />
+				<span class="toggle__track">
+					<span class="toggle__thumb"></span>
+				</span>
+				<span class="toggle__text">enabled</span>
+			</label>
+		</header>
+
+		<section class="controls">
+			<div class="control control--color">
+				<label class="swatch" aria-label="Pick overlay color">
+					<input id="color" class="swatch__input" type="color" value="#ff0000" />
+					<span class="swatch__ring">
+						<span id="colorPreview" class="swatch__fill"></span>
+					</span>
+				</label>
+
+				<div class="control__label">color</div>
+			</div>
+
+			<div class="control control--opacity">
+				<label class="slider" aria-label="Set overlay opacity">
+					<input id="opacity" class="slider__input" type="range" min="0" max="100" step="1" value="53" />
+					<span class="slider__track">
+						<span id="sliderFill" class="slider__fill"></span>
+						<span id="sliderThumb" class="slider__thumb"></span>
+					</span>
+				</label>
+
+				<div class="control__label">opacity</div>
+			</div>
+		</section>
+	</main>
+
+	<script src="popup.js"></script>
+</body>
+
+</html>
