@@ -124,7 +124,7 @@ body {
 .controls {
 	display: grid;
 	grid-template-columns: 66px 131px;
-	column-gap: 50px;
+	column-gap: 25px;
 	align-items: start;
 	margin-top: 30px;
 }
@@ -235,6 +235,13 @@ body {
 	border-radius: 32px;
 	background: var(--thumb-bg);
 	transform: translate(-50%, -50%);
+}
+
+.toggle__input:focus-visible + .toggle__track,
+.swatch__input:focus-visible + .swatch__ring,
+.slider__input:focus-visible + .slider__track {
+	outline: 1px solid var(--text);
+	outline-offset: 2px;
 }
 
 .app[data-disabled="true"] .swatch,

@@ -31,9 +31,15 @@
 
 	function applyOverlay(color) {
 		const style = ensureStyleTag();
+		// A cascade layer lets the overlay win over the page's own
+		// unlayered `!important` backgrounds regardless of selector specificity.
 		style.textContent = `
-			* {
-				background-color: ${color} !important;
+			@layer debug-visor {
+				*,
+				*::before,
+				*::after {
+					background-color: ${color} !important;
+				}
 			}
 		`;
 	}
@@ -62,7 +68,7 @@
 			{
 				enabled: false,
 				color: "#ff0000",
-				opacity: 1,
+				opacity: 53,
 			},
 			(result) => {
 				if (!result.enabled) {
