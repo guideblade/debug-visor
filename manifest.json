@@ -1,9 +1,28 @@
 {
 	"manifest_version": 3,
 	"name": "Debug Visor",
-	"version": "1.0.0",
-	"description": "Applies a transparent overlay background to all elements for debugging layout.",
-	"permissions": ["storage", "activeTab", "scripting"],
+	"version": "1.2.0",
+	"description": "Fills or outlines every element on the page with a transparent color for debugging layout.",
+	"permissions": ["storage", "scripting"],
+	"host_permissions": ["<all_urls>"],
+	"content_scripts": [
+		{
+			"matches": ["<all_urls>"],
+			"js": ["content.js"],
+			"run_at": "document_start"
+		}
+	],
+	"background": {
+		"service_worker": "background.js"
+	},
+	"commands": {
+		"toggle-overlay": {
+			"suggested_key": {
+				"default": "Alt+Shift+D"
+			},
+			"description": "Toggle the overlay on the current tab"
+		}
+	},
 	"icons": {
 		"32": "32.png"
 	},

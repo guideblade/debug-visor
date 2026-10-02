@@ -7,6 +7,8 @@
 	}
 
 	const STYLE_ID = "debug-visor-style";
+	// Must match siteKeyFromUrl() in shared.js.
+	const SITE = location.origin === "null" ? location.protocol : location.origin;
 
 	function getStyleTag() {
 		return document.getElementById(STYLE_ID);
@@ -29,11 +31,27 @@
 		if (style) style.remove();
 	}
 
-	function applyOverlay(color) {
+	function applyOverlay(color, mode) {
 		const style = ensureStyleTag();
+		// The negative offset keeps outlines inside each box, so they don't
+		// overlap neighbours or get clipped at the viewport edge.
+		const declarations = [
+			mode !== "outline" && `background-color: ${color} !important;`,
+			mode !== "fill" &&
+				`outline: 1px solid ${color} !important; outline-offset: -1px !important;`,
+		]
+			.filter(Boolean)
+			.join("\n");
+
+		// A cascade layer lets the overlay win over the page's own
+		// unlayered `!important` backgrounds regardless of selector specificity.
 		style.textContent = `
-			* {
-				background-color: ${color} !important;
+			@layer debug-visor {
+				*,
+				*::before,
+				*::after {
+					${declarations}
+				}
 			}
 		`;
 	}
@@ -60,17 +78,18 @@
 	function refreshFromStorage() {
 		chrome.storage.local.get(
 			{
-				enabled: false,
+				sites: [],
 				color: "#ff0000",
-				opacity: 1,
+				opacity: 53,
+				mode: "fill",
 			},
 			(result) => {
-				if (!result.enabled) {
+				if (!result.sites.includes(SITE)) {
 					removeOverlay();
 					return;
 				}
 
-				applyOverlay(rgbaFromHex(result.color, result.opacity));
+				applyOverlay(rgbaFromHex(result.color, result.opacity), result.mode);
 			},
 		);
 	}
@@ -83,6 +102,9 @@
 
 	chrome.storage.onChanged.addListener((changes, areaName) => {
 		if (areaName !== "local") return;
+		// This script runs in every tab, so skip the storage read while
+		// dragging a slider unless the overlay is shown here or might be now.
+		if (!getStyleTag() && !("sites" in changes)) return;
 		refreshFromStorage();
 	});
 

@@ -2,7 +2,7 @@
 
 <img width="66" height="29" alt="Frame 4" src="https://github.com/user-attachments/assets/27282e8f-cc3e-48f3-8b52-839dd36bd063" />
 
-Your supervison for debuggins CSS in Google Chrome.
+Your supervision for debugging CSS in Google Chrome.
 
 ## How to use
 

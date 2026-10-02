@@ -7,14 +7,17 @@ const sliderTrack = document.querySelector(".slider__track");
 const sliderFill = document.getElementById("sliderFill");
 const sliderThumb = document.getElementById("sliderThumb");
 const app = document.querySelector(".app");
+const toggle = document.querySelector(".toggle");
+const modeInputs = document.querySelectorAll(".mode__input");
 
 const defaults = {
-	enabled: true,
 	color: "#ff0000",
 	opacity: 53,
+	mode: "fill",
 };
 
-let state = { ...defaults };
+let state = { enabled: true, ...defaults };
+let activeSite = null;
 let activePointerId = null;
 
 function clamp(value, min, max) {
@@ -28,28 +31,6 @@ function getActiveTab(callback) {
 		if (!tab?.id) return;
 
 		callback(tab);
-	});
-}
-
-function ensureContentScriptInActiveTab(callback = () => {}) {
-	getActiveTab((tab) => {
-		chrome.tabs.sendMessage(tab.id, { type: "debug-visor:ping" }, () => {
-			if (!chrome.runtime.lastError) {
-				callback();
-				return;
-			}
-
-			chrome.scripting.executeScript(
-				{
-					target: { tabId: tab.id },
-					files: ["content.js"],
-				},
-				() => {
-					void chrome.runtime.lastError;
-					callback();
-				},
-			);
-		});
 	});
 }
 
@@ -76,12 +57,20 @@ function updateEnabledVisual(enabled) {
 	app.dataset.disabled = String(!enabled);
 	colorInput.disabled = !enabled;
 	opacityInput.disabled = !enabled;
+
+	for (const input of modeInputs) {
+		input.disabled = !enabled;
+	}
 }
 
 function render() {
 	enabledInput.checked = state.enabled;
 	colorInput.value = state.color;
 	opacityInput.value = String(state.opacity);
+
+	for (const input of modeInputs) {
+		input.checked = input.value === state.mode;
+	}
 
 	updateColorVisual(state.color);
 	updateSliderVisual(state.opacity);
@@ -92,17 +81,18 @@ function persist(partial, callback = () => {}) {
 	chrome.storage.local.set(partial, callback);
 }
 
-function setEnabled(enabled, shouldPersist = true) {
+function setEnabled(enabled) {
 	state.enabled = enabled;
 	render();
 
-	if (!shouldPersist) return;
+	if (activeSite) setSiteEnabled(activeSite, enabled);
+}
 
-	persist({ enabled: state.enabled }, () => {
-		if (state.enabled) {
-			ensureContentScriptInActiveTab();
-		}
-	});
+function showUnavailable() {
+	app.dataset.unavailable = "true";
+	enabledInput.disabled = true;
+	state.enabled = false;
+	render();
 }
 
 function setOpacity(opacity) {
@@ -128,16 +118,24 @@ function hydrate() {
 			enabled: true,
 			color: result.color,
 			opacity: Number(result.opacity),
+			mode: result.mode,
 		};
 
 		render();
 
-		if (!result.enabled) {
-			persist({ enabled: true }, ensureContentScriptInActiveTab);
-			return;
-		}
+		getActiveTab((tab) => {
+			activeSite = siteKeyFromUrl(tab.url);
 
-		ensureContentScriptInActiveTab();
+			ensureContentScript(tab.id, (isAvailable) => {
+				if (!isAvailable || !activeSite) {
+					showUnavailable();
+					return;
+				}
+
+				// Opening the popup turns the overlay on for the current site.
+				setEnabled(true);
+			});
+		});
 	});
 }
 
@@ -150,6 +148,14 @@ colorInput.addEventListener("input", () => {
 	render();
 	persist({ color: state.color });
 });
+
+for (const input of modeInputs) {
+	input.addEventListener("change", () => {
+		state.mode = input.value;
+		render();
+		persist({ mode: state.mode });
+	});
+}
 
 opacityInput.addEventListener("input", () => {
 	setOpacity(Number(opacityInput.value));
@@ -180,4 +186,15 @@ function releaseSliderPointer(event) {
 slider.addEventListener("pointerup", releaseSliderPointer);
 slider.addEventListener("pointercancel", releaseSliderPointer);
 
+function showShortcutHint() {
+	chrome.commands.getAll((commands) => {
+		const shortcut = commands.find(
+			(command) => command.name === "toggle-overlay",
+		)?.shortcut;
+
+		if (shortcut) toggle.title = `Toggle with ${shortcut}`;
+	});
+}
+
 hydrate();
+showShortcutHint();

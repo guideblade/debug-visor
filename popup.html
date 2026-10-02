@@ -13,8 +13,8 @@
 		<header class="topbar">
 			<h1 class="title">Debug Visor</h1>
 
-			<label class="toggle" aria-label="Toggle Debug Visor">
-				<input id="enabled" class="toggle__input" type="checkbox" />
+			<label class="toggle">
+				<input id="enabled" class="toggle__input" type="checkbox" role="switch" aria-label="Toggle Debug Visor" />
 				<span class="toggle__track">
 					<span class="toggle__thumb"></span>
 				</span>
@@ -24,8 +24,8 @@
 
 		<section class="controls">
 			<div class="control control--color">
-				<label class="swatch" aria-label="Pick overlay color">
-					<input id="color" class="swatch__input" type="color" value="#ff0000" />
+				<label class="swatch">
+					<input id="color" class="swatch__input" type="color" value="#ff0000" aria-label="Overlay color" />
 					<span class="swatch__ring">
 						<span id="colorPreview" class="swatch__fill"></span>
 					</span>
@@ -35,8 +35,8 @@
 			</div>
 
 			<div class="control control--opacity">
-				<label class="slider" aria-label="Set overlay opacity">
-					<input id="opacity" class="slider__input" type="range" min="0" max="100" step="1" value="53" />
+				<label class="slider">
+					<input id="opacity" class="slider__input" type="range" min="0" max="100" step="1" value="53" aria-label="Overlay opacity" />
 					<span class="slider__track">
 						<span id="sliderFill" class="slider__fill"></span>
 						<span id="sliderThumb" class="slider__thumb"></span>
@@ -46,8 +46,26 @@
 				<div class="control__label">opacity</div>
 			</div>
 		</section>
+
+		<div class="modes" role="radiogroup" aria-label="Overlay mode">
+			<label class="mode">
+				<input class="mode__input" type="radio" name="mode" value="fill" />
+				<span class="mode__text">fill</span>
+			</label>
+			<label class="mode">
+				<input class="mode__input" type="radio" name="mode" value="outline" />
+				<span class="mode__text">outline</span>
+			</label>
+			<label class="mode">
+				<input class="mode__input" type="radio" name="mode" value="both" />
+				<span class="mode__text">both</span>
+			</label>
+		</div>
+
+		<p class="notice" role="status">can't run on this page</p>
 	</main>
 
+	<script src="shared.js"></script>
 	<script src="popup.js"></script>
 </body>
 
