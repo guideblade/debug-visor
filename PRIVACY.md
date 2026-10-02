@@ -1,6 +1,6 @@
 # Privacy Policy for Debug Visor
 
-Last updated: April 21, 2026
+Last updated: October 2, 2026
 
 Debug Visor does not collect, sell, or share personal information.
 
@@ -8,7 +8,7 @@ Debug Visor does not collect, sell, or share personal information.
 
 Debug Visor stores the following settings locally in your browser using Chrome extension storage:
 
-- Whether the overlay is enabled
+- The sites (for example `http://localhost:3000`) where you turned the overlay on
 - The selected overlay color
 - The selected overlay opacity
 - The selected overlay mode (fill, outline, or both)
@@ -18,6 +18,8 @@ These settings are used only to remember your preferences.
 ## What Debug Visor Does
 
 When you click the extension, Debug Visor can apply a visual overlay to the current tab so you can inspect page backgrounds more easily.
+
+To keep the overlay on after a page reloads, Debug Visor runs a small script on every page you open. The script only compares the page's site with your saved list and adds or removes the overlay; it does not read the page's content.
 
 ## What Debug Visor Does Not Do
 

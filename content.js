@@ -7,6 +7,8 @@
 	}
 
 	const STYLE_ID = "debug-visor-style";
+	// Must match siteKeyFromUrl() in shared.js.
+	const SITE = location.origin === "null" ? location.protocol : location.origin;
 
 	function getStyleTag() {
 		return document.getElementById(STYLE_ID);
@@ -76,13 +78,13 @@
 	function refreshFromStorage() {
 		chrome.storage.local.get(
 			{
-				enabled: false,
+				sites: [],
 				color: "#ff0000",
 				opacity: 53,
 				mode: "fill",
 			},
 			(result) => {
-				if (!result.enabled) {
+				if (!result.sites.includes(SITE)) {
 					removeOverlay();
 					return;
 				}
@@ -100,6 +102,9 @@
 
 	chrome.storage.onChanged.addListener((changes, areaName) => {
 		if (areaName !== "local") return;
+		// This script runs in every tab, so skip the storage read while
+		// dragging a slider unless the overlay is shown here or might be now.
+		if (!getStyleTag() && !("sites" in changes)) return;
 		refreshFromStorage();
 	});
 

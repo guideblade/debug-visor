@@ -11,13 +11,13 @@ const toggle = document.querySelector(".toggle");
 const modeInputs = document.querySelectorAll(".mode__input");
 
 const defaults = {
-	enabled: true,
 	color: "#ff0000",
 	opacity: 53,
 	mode: "fill",
 };
 
-let state = { ...defaults };
+let state = { enabled: true, ...defaults };
+let activeSite = null;
 let activePointerId = null;
 
 function clamp(value, min, max) {
@@ -31,30 +31,6 @@ function getActiveTab(callback) {
 		if (!tab?.id) return;
 
 		callback(tab);
-	});
-}
-
-function ensureContentScriptInActiveTab(callback = () => {}) {
-	getActiveTab((tab) => {
-		chrome.tabs.sendMessage(tab.id, { type: "debug-visor:ping" }, () => {
-			if (!chrome.runtime.lastError) {
-				callback();
-				return;
-			}
-
-			chrome.scripting.executeScript(
-				{
-					target: { tabId: tab.id },
-					files: ["content.js"],
-				},
-				() => {
-					// Chrome blocks injection into chrome:// pages, the Web Store
-					// and the like; say so instead of failing silently.
-					app.dataset.unavailable = String(Boolean(chrome.runtime.lastError));
-					callback();
-				},
-			);
-		});
 	});
 }
 
@@ -105,17 +81,18 @@ function persist(partial, callback = () => {}) {
 	chrome.storage.local.set(partial, callback);
 }
 
-function setEnabled(enabled, shouldPersist = true) {
+function setEnabled(enabled) {
 	state.enabled = enabled;
 	render();
 
-	if (!shouldPersist) return;
+	if (activeSite) setSiteEnabled(activeSite, enabled);
+}
 
-	persist({ enabled: state.enabled }, () => {
-		if (state.enabled) {
-			ensureContentScriptInActiveTab();
-		}
-	});
+function showUnavailable() {
+	app.dataset.unavailable = "true";
+	enabledInput.disabled = true;
+	state.enabled = false;
+	render();
 }
 
 function setOpacity(opacity) {
@@ -146,12 +123,19 @@ function hydrate() {
 
 		render();
 
-		if (!result.enabled) {
-			persist({ enabled: true }, ensureContentScriptInActiveTab);
-			return;
-		}
+		getActiveTab((tab) => {
+			activeSite = siteKeyFromUrl(tab.url);
 
-		ensureContentScriptInActiveTab();
+			ensureContentScript(tab.id, (isAvailable) => {
+				if (!isAvailable || !activeSite) {
+					showUnavailable();
+					return;
+				}
+
+				// Opening the popup turns the overlay on for the current site.
+				setEnabled(true);
+			});
+		});
 	});
 }
 
