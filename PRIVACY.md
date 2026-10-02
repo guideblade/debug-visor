@@ -11,6 +11,7 @@ Debug Visor stores the following settings locally in your browser using Chrome e
 - Whether the overlay is enabled
 - The selected overlay color
 - The selected overlay opacity
+- The selected overlay mode (fill, outline, or both)
 
 These settings are used only to remember your preferences.
 

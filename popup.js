@@ -7,11 +7,14 @@ const sliderTrack = document.querySelector(".slider__track");
 const sliderFill = document.getElementById("sliderFill");
 const sliderThumb = document.getElementById("sliderThumb");
 const app = document.querySelector(".app");
+const toggle = document.querySelector(".toggle");
+const modeInputs = document.querySelectorAll(".mode__input");
 
 const defaults = {
 	enabled: true,
 	color: "#ff0000",
 	opacity: 53,
+	mode: "fill",
 };
 
 let state = { ...defaults };
@@ -45,7 +48,9 @@ function ensureContentScriptInActiveTab(callback = () => {}) {
 					files: ["content.js"],
 				},
 				() => {
-					void chrome.runtime.lastError;
+					// Chrome blocks injection into chrome:// pages, the Web Store
+					// and the like; say so instead of failing silently.
+					app.dataset.unavailable = String(Boolean(chrome.runtime.lastError));
 					callback();
 				},
 			);
@@ -76,12 +81,20 @@ function updateEnabledVisual(enabled) {
 	app.dataset.disabled = String(!enabled);
 	colorInput.disabled = !enabled;
 	opacityInput.disabled = !enabled;
+
+	for (const input of modeInputs) {
+		input.disabled = !enabled;
+	}
 }
 
 function render() {
 	enabledInput.checked = state.enabled;
 	colorInput.value = state.color;
 	opacityInput.value = String(state.opacity);
+
+	for (const input of modeInputs) {
+		input.checked = input.value === state.mode;
+	}
 
 	updateColorVisual(state.color);
 	updateSliderVisual(state.opacity);
@@ -128,6 +141,7 @@ function hydrate() {
 			enabled: true,
 			color: result.color,
 			opacity: Number(result.opacity),
+			mode: result.mode,
 		};
 
 		render();
@@ -150,6 +164,14 @@ colorInput.addEventListener("input", () => {
 	render();
 	persist({ color: state.color });
 });
+
+for (const input of modeInputs) {
+	input.addEventListener("change", () => {
+		state.mode = input.value;
+		render();
+		persist({ mode: state.mode });
+	});
+}
 
 opacityInput.addEventListener("input", () => {
 	setOpacity(Number(opacityInput.value));
@@ -180,4 +202,15 @@ function releaseSliderPointer(event) {
 slider.addEventListener("pointerup", releaseSliderPointer);
 slider.addEventListener("pointercancel", releaseSliderPointer);
 
+function showShortcutHint() {
+	chrome.commands.getAll((commands) => {
+		const shortcut = commands.find(
+			(command) => command.name === "toggle-overlay",
+		)?.shortcut;
+
+		if (shortcut) toggle.title = `Toggle with ${shortcut}`;
+	});
+}
+
 hydrate();
+showShortcutHint();

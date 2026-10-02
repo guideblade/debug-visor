@@ -29,8 +29,18 @@
 		if (style) style.remove();
 	}
 
-	function applyOverlay(color) {
+	function applyOverlay(color, mode) {
 		const style = ensureStyleTag();
+		// The negative offset keeps outlines inside each box, so they don't
+		// overlap neighbours or get clipped at the viewport edge.
+		const declarations = [
+			mode !== "outline" && `background-color: ${color} !important;`,
+			mode !== "fill" &&
+				`outline: 1px solid ${color} !important; outline-offset: -1px !important;`,
+		]
+			.filter(Boolean)
+			.join("\n");
+
 		// A cascade layer lets the overlay win over the page's own
 		// unlayered `!important` backgrounds regardless of selector specificity.
 		style.textContent = `
@@ -38,7 +48,7 @@
 				*,
 				*::before,
 				*::after {
-					background-color: ${color} !important;
+					${declarations}
 				}
 			}
 		`;
@@ -69,6 +79,7 @@
 				enabled: false,
 				color: "#ff0000",
 				opacity: 53,
+				mode: "fill",
 			},
 			(result) => {
 				if (!result.enabled) {
@@ -76,7 +87,7 @@
 					return;
 				}
 
-				applyOverlay(rgbaFromHex(result.color, result.opacity));
+				applyOverlay(rgbaFromHex(result.color, result.opacity), result.mode);
 			},
 		);
 	}
